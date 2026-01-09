@@ -1,7 +1,15 @@
+import os
+import sys
 import traceback
+import unicodedata
+from pathlib import Path
+
 from sentence_transformers import SentenceTransformer
 from sqlalchemy.orm import Session
-import unicodedata
+
+# Ensure project root on PYTHONPATH when running as script inside container
+ROOT_DIR = Path(__file__).resolve().parents[1]
+sys.path.append(str(ROOT_DIR))
 
 from app.db.database import SessionLocal
 from app.db.models import Document
