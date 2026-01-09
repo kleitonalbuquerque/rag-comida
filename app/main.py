@@ -2,6 +2,7 @@ import unicodedata
 from typing import List
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sqlalchemy import text
 from sentence_transformers import SentenceTransformer
@@ -10,6 +11,14 @@ from app.db.init_db import init_db
 from app.db.database import SessionLocal
 
 app = FastAPI(title="RAG de Comida 🍽️")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 model = SentenceTransformer("all-MiniLM-L6-v2")
 

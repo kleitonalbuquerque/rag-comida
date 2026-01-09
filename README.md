@@ -34,20 +34,18 @@ O objetivo é armazenar textos (receitas, dicas, curiosidades, descrições de p
 
 ```text
 rag-comida/
-├── app/
-│   ├── main.py          # Inicialização da API FastAPI
-│   ├── database.py      # Conexão com o banco de dados
-│   ├── models.py        # Modelos SQLAlchemy
-│   ├── schemas.py       # Schemas Pydantic
-│   └── routes/          # Rotas da aplicação
-│       └── query.py     # Endpoint de busca semântica
-│
+├── app/                 # Backend FastAPI
+│   ├── main.py          # Entrypoint, /health e /search
+│   ├── db/              # Conexão, modelos e init do pgvector
+│   └── ...
 ├── scripts/
-│   └── ingest.py        # Script de ingestão de conteúdos
-│
-├── docker-compose.yml   # Subida do PostgreSQL + pgvector
-├── requirements.txt     # Dependências do projeto
-├── .env.example         # Exemplo de variáveis de ambiente
+│   └── ingest.py        # Script de ingestão usando all-MiniLM-L6-v2
+├── frontend/            # Frontend Next.js (chat UI)
+│   ├── app/page.js      # Chat com fetch para /search
+│   └── app/layout.js
+├── docker-compose.yml   # Postgres + API
+├── Dockerfile           # Build da API
+├── requirements.txt     # Dependências da API
 └── README.md
 ```
 
@@ -135,18 +133,21 @@ python -m pip install -r requirements.txt
 
 ---
 
-## 🚀 Rodando a aplicação
+## 🚀 Rodando a aplicação (API)
 
-Com o ambiente virtual ativado:
+Com o ambiente virtual ativado (ou via container):
 
 ```bash
 python -m uvicorn app.main:app --reload
 ```
 
-A aplicação estará disponível em:
+Ou com Docker Compose:
 
-* API: [http://127.0.0.1:8000](http://127.0.0.1:8000)
-* Docs (Swagger): [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+```bash
+docker compose up -d
+```
+
+A API fica em http://127.0.0.1:8000 (docs: http://127.0.0.1:8000/docs).
 
 ---
 
@@ -163,6 +164,35 @@ Resposta esperada:
 ```json
 { "status": "ok" }
 ```
+
+---
+
+## 🧭 Frontend (Next.js + styled-components)
+
+Interface de chat que consome `POST /search` da API.
+
+### Pré-requisitos
+- Node 18+
+- API rodando em http://localhost:8000 (ou defina `NEXT_PUBLIC_API_URL`)
+
+### Setup
+```bash
+cd frontend
+npm install
+npm run dev
+# abre em http://localhost:3000
+```
+
+Se a API estiver em outro host/porta, crie `frontend/.env.local`:
+```
+NEXT_PUBLIC_API_URL=http://localhost:8000
+```
+
+### Como funciona
+- Header com título e botão “Limpar chat”.
+- Input e botão de envio travam enquanto o fetch está em andamento.
+- Mensagens listadas em chat (usuário/bot).
+- Faz `POST /search` com `{ query, top_k }` e responde com o documento mais relevante.
 
 ---
 
