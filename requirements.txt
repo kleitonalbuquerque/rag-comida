@@ -6,3 +6,4 @@ python-dotenv
 sentence-transformers
 pgvector
 numpy<2
+openai>=1.12.0
