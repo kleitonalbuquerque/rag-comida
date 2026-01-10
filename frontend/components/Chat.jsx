@@ -82,6 +82,15 @@ export function Chat() {
     if (!input.trim() || loading) return;
     const userText = input.trim();
 
+    // Inclui breve histórico para contexto do LLM (últimas 6 mensagens).
+    const history = messages
+      .map((m) => `${m.role === "user" ? "Usuario" : "Bot"}: ${m.text}`)
+      .slice(-6)
+      .join("\n");
+    const messagePayload = history
+      ? `${history}\nUsuario: ${userText}`
+      : userText;
+
     setMessages((prev) => [
       ...prev,
       { id: crypto.randomUUID(), role: "user", text: userText },
@@ -94,7 +103,7 @@ export function Chat() {
       const res = await fetch(`${apiBase}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: userText, top_k: 3 }),
+        body: JSON.stringify({ message: messagePayload, top_k: 3 }),
       });
 
       if (!res.ok) {
