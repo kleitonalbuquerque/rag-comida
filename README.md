@@ -87,6 +87,12 @@ Isso irá subir:
 docker exec -it vector_db psql -U postgres -d vector_db
 ```
 
+### 3️⃣ Ver logs em tempo real
+
+```bash
+docker compose logs -f api
+```
+
 ---
 
 ## 🔐 Variáveis de ambiente
