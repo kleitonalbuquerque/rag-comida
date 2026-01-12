@@ -91,9 +91,10 @@ export function Chat() {
       ? `${history}\nUsuario: ${userText}`
       : userText;
 
+    const now = new Date().toISOString();
     setMessages((prev) => [
       ...prev,
-      { id: crypto.randomUUID(), role: "user", text: userText },
+      { id: crypto.randomUUID(), role: "user", text: userText, ts: now },
     ]);
     setInput("");
     setLoading(true);
@@ -114,7 +115,12 @@ export function Chat() {
       const reply = data.answer || "Nao encontrei nada relevante.";
       setMessages((prev) => [
         ...prev,
-        { id: crypto.randomUUID(), role: "bot", text: reply },
+        {
+          id: crypto.randomUUID(),
+          role: "bot",
+          text: reply,
+          ts: new Date().toISOString(),
+        },
       ]);
     } catch (err) {
       setError("Erro ao buscar. Tente novamente.");

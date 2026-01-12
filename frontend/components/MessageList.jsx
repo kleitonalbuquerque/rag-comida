@@ -7,12 +7,18 @@ const List = styled.div`
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   padding-right: 4px;
 `;
 
+const MessageRow = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: ${(p) => (p.role === "user" ? "flex-end" : "flex-start")};
+  gap: 4px;
+`;
+
 const Bubble = styled.div`
-  align-self: ${(p) => (p.role === "user" ? "flex-end" : "flex-start")};
   background: ${(p) => (p.role === "user" ? "var(--accent)" : "#1f2937")};
   color: ${(p) => (p.role === "user" ? "#0b1224" : "var(--text)")};
   border-radius: 14px;
@@ -24,13 +30,32 @@ const Bubble = styled.div`
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 `;
 
+const Time = styled.small`
+  color: var(--muted);
+  font-size: 11px;
+`;
+
+const formatTime = (value) => {
+  if (!value) return "";
+  try {
+    return new Date(value).toLocaleTimeString("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+  } catch {
+    return "";
+  }
+};
+
 export function MessageList({ messages, listRef }) {
   return (
     <List ref={listRef}>
       {messages.map((m) => (
-        <Bubble key={m.id} role={m.role}>
-          {m.text}
-        </Bubble>
+        <MessageRow key={m.id} role={m.role}>
+          <Bubble role={m.role}>{m.text}</Bubble>
+          <Time>{formatTime(m.ts)}</Time>
+        </MessageRow>
       ))}
     </List>
   );
