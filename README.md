@@ -62,11 +62,7 @@ Antes de começar, você precisa ter instalado:
 
 ---
 
-## 🐳 Subindo o banco com Docker
-
-O projeto utiliza PostgreSQL com a extensão **pgvector** para armazenar e consultar embeddings vetoriais.
-
-### 1️⃣ Subir o container
+## 🐳 Subindo com Docker (API + Postgres)
 
 Na raiz do projeto:
 
@@ -74,23 +70,33 @@ Na raiz do projeto:
 docker compose up -d
 ```
 
-Isso irá subir:
-
-* PostgreSQL
-* Extensão **pgvector** já habilitada
-
----
-
-### 2️⃣ Acessar o banco (opcional)
+Isso sobe Postgres (pgvector habilitado) e a API. Para acompanhar:
 
 ```bash
-docker exec -it vector_db psql -U postgres -d vector_db
+docker compose ps
+docker compose logs -f api
 ```
 
-### 3️⃣ Ver logs em tempo real
+#### LLM (Ollama) acessível pelo container
+
+- Inicie o Ollama ouvindo em todas as interfaces (no host ou no WSL):
+	```bash
+	OLLAMA_HOST=0.0.0.0:11434 ollama serve
+	```
+- A API usa endpoint compatível OpenAI em `http://host.docker.internal:11434/v1` (config no `.env`).
+- Após subir, faça um ping de aquecimento para evitar cold start:
+	```bash
+	docker compose exec api curl -s -X POST http://localhost:8000/chat \
+		-H "Content-Type: application/json" \
+		-d '{"message":"Diga apenas: ok","top_k":1}'
+	```
+
+> Se quiser verificar saúde do LLM via API: `docker compose exec api curl -s http://localhost:8000/llm/health`
+
+#### Acessar o banco (opcional)
 
 ```bash
-docker compose logs -f api
+docker exec -it rag-postgres psql -U postgres -d vector_db
 ```
 
 ---
@@ -103,11 +109,23 @@ Crie um arquivo `.env` baseado no exemplo:
 cp .env.example .env
 ```
 
-Exemplo de `.env`:
+Principais chaves usadas atualmente:
 
 ```env
-DATABASE_URL=postgresql+psycopg2://postgres:postgres@localhost:5432/vector_db
+DB_HOST=postgres
+DB_PORT=5432
+DB_NAME=vector_db
+DB_USER=postgres
+DB_PASSWORD=postgres
+
+# LLM (Ollama via API compatível OpenAI)
+LLM_BASE_URL=http://host.docker.internal:11434/v1
+LLM_API_KEY=sk-local
+LLM_MODEL=llama3.2:3b
+LLM_TIMEOUT=60
 ```
+
+> Dica: se o Ollama estiver no WSL, mantenha-o ouvindo em `0.0.0.0:11434` e use `host.docker.internal` no `.env` da API. Se estiver em outro host/IP, ajuste `LLM_BASE_URL` conforme.
 
 ---
 
@@ -175,7 +193,7 @@ Resposta esperada:
 
 ## 🧭 Frontend (Next.js + styled-components)
 
-Interface de chat que consome `POST /search` da API.
+Interface de chat que consome `POST /chat` da API.
 
 ### Pré-requisitos
 - Node 18+
@@ -197,8 +215,9 @@ NEXT_PUBLIC_API_URL=http://localhost:8000
 ### Como funciona
 - Header com título e botão “Limpar chat”.
 - Input e botão de envio travam enquanto o fetch está em andamento.
-- Mensagens listadas em chat (usuário/bot).
-- Faz `POST /search` com `{ query, top_k }` e responde com o documento mais relevante.
+- Mensagens listadas em chat (usuário/bot) com horário.
+- Respostas do bot renderizam Markdown (negrito, listas, etc.).
+- Faz `POST /chat` com `{ message, top_k }` e retorna resposta + fontes.
 
 ---
 
@@ -210,7 +229,7 @@ NEXT_PUBLIC_API_URL=http://localhost:8000
 4. O usuário faz uma pergunta
 5. A pergunta vira um embedding
 6. O pgvector retorna os textos semanticamente mais próximos
-7. Esses textos podem ser usados por um LLM para gerar respostas confiáveis
+7. Esses textos são usados por um LLM (via /chat) para gerar respostas confiáveis
 
 ---
 

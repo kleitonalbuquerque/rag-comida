@@ -116,10 +116,10 @@ describe("Chat flow", () => {
       await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(i));
     }
 
-    // A ultima chamada de fetch deve conter apenas as 6 ultimas entradas (user/bot) + atual.
-    // Como cada pergunta adiciona 2 mensagens (usuario + bot), apos 7 perguntas as 6 ultimas entradas começam em m4.
+    // Agora o historico envia apenas as 4 ultimas entradas (user/bot) + atual.
+    // Antes da 7a pergunta, as ultimas entradas são m5, m6 e seus bots.
     const body = JSON.parse(global.fetch.mock.lastCall[1].body);
-    expect(body.message).toMatch(/m4/); // inicio da janela de 6 entradas
-    expect(body.message).not.toMatch(/m3/); // removido do historico
+    expect(body.message).toMatch(/m5/);
+    expect(body.message).not.toMatch(/m4/);
   });
 });

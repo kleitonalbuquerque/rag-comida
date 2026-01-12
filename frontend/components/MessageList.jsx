@@ -1,6 +1,7 @@
 "use client";
 
 import styled from "styled-components";
+import { marked } from "marked";
 
 const List = styled.div`
   flex: 1;
@@ -48,12 +49,20 @@ const formatTime = (value) => {
   }
 };
 
+const renderMarkdown = (value) => {
+  if (!value) return "";
+  return marked.parse(value, { breaks: true, mangle: false, headerIds: false });
+};
+
 export function MessageList({ messages, listRef }) {
   return (
     <List ref={listRef}>
       {messages.map((m) => (
         <MessageRow key={m.id} role={m.role}>
-          <Bubble role={m.role}>{m.text}</Bubble>
+          <Bubble
+            role={m.role}
+            dangerouslySetInnerHTML={{ __html: renderMarkdown(m.text) }}
+          />
           <Time>{formatTime(m.ts)}</Time>
         </MessageRow>
       ))}

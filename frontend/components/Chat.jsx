@@ -82,10 +82,10 @@ export function Chat() {
     if (!input.trim() || loading) return;
     const userText = input.trim();
 
-    // Inclui breve histórico para contexto do LLM (últimas 6 mensagens).
+    // Inclui breve histórico para contexto do LLM (últimas 4 mensagens) para reduzir latência.
     const history = messages
       .map((m) => `${m.role === "user" ? "Usuario" : "Bot"}: ${m.text}`)
-      .slice(-6)
+      .slice(-4)
       .join("\n");
     const messagePayload = history
       ? `${history}\nUsuario: ${userText}`

@@ -151,6 +151,7 @@ def chat(request: ChatRequest):
         completion = client.chat.completions.create(
             model=llm_model,
             temperature=0.3,
+            max_tokens=256,
             messages=[
                 {
                     "role": "system",
